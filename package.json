@@ -1,6 +1,6 @@
 {
   "name": "@edworking/mcp",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "The official Edworking MCP server for tasks, Docs, workspace search, conversations and files",
   "type": "module",
   "license": "MIT",
@@ -35,7 +35,7 @@
     "express-rate-limit": "^8.7.1",
     "helmet": "^8.3.0",
     "ipaddr.js": "^2.5.0",
-    "zod": "^4.6.5"
+    "zod": "4.6.7"
   },
   "devDependencies": {
     "@types/cookie-parser": "^1.4.10",
