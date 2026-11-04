@@ -9,9 +9,9 @@ The official, open-source [Edworking](https://edworking.com) MCP server. Connect
 
 **Public identity:** Edworking MCP. The Railway infrastructure retains the codename **Bellsprout**. Use the custom domain above for all new connections. Connections created against the earlier Railway URL must reconnect because their OAuth resource audience has changed.
 
-**Release:** This branch adds a Figma plugin transport and two frame-link tools to the existing 0.2.0 catalog (24 tools total). Deploy the matching scoped API backend before the MCP server. Docs require new `docs:read` / `docs:write` token permissions and OAuth consent. Existing grants are not expanded automatically.
+**Release:** 0.3.0 adds a Figma plugin transport, design-aware task and Doc creation, and two frame-link tools (24 tools total). Deploy the matching scoped API backend before the MCP server. Docs require new `docs:read` / `docs:write` token permissions and OAuth consent. Existing grants are not expanded automatically.
 
-**Published baseline:** 0.1.4 is available through npm, the Official MCP Registry, Smithery and the Glama hosted connector. OpenAI review was submitted on 13 October 2026 and is pending; it is not yet published in OpenAI. See the [publication checklist](docs/distribution.md) for individual directory statuses.
+**Distribution:** npm 0.2.0 was verified on 4 November 2026. Version 0.3.0 must be published separately after deployment and acceptance checks; merging source does not publish a package or update directory metadata. The OpenAI submission was last verified as pending on 13 October 2026. See the [publication checklist](docs/distribution.md) for individual directory statuses.
 
 ## Connect
 
@@ -24,7 +24,7 @@ codex mcp add edworking-mcp --url https://mcp.edworking.com/mcp
 codex mcp login edworking-mcp
 ```
 
-For ChatGPT testing, use **Plugins → Add custom MCP server**, select OAuth and enter the endpoint. Availability depends on your plan and workspace policy. A portable OpenAI plugin package is in [`plugin/`](plugin). The 0.2.0 package declares six read and five write OAuth scopes, including Docs. The already-submitted OpenAI review package remains a separate 0.1.4 artifact until a new version is submitted. Verify the actual consent screen and `get_connection` result. On 13 October, the submission portal metadata grant used five read scopes, while a separate ChatGPT demo connection received all nine scopes and successfully created a task and sent a message. Existing read-only grants remain read-only until reauthorized; a token with write permissions does not automatically upgrade an OAuth grant.
+For ChatGPT testing, use **Plugins → Add custom MCP server**, select OAuth and enter the endpoint. Availability depends on your plan and workspace policy. A portable OpenAI plugin package is in [`plugin/`](plugin). The 0.3.0 package declares six read and five write OAuth scopes, including Docs. The already-submitted OpenAI review package remains a separate 0.1.4 artifact until a new version is submitted. Verify the actual consent screen and `get_connection` result. On 13 October, the submission portal metadata grant used five read scopes, while a separate ChatGPT demo connection received all nine scopes and successfully created a task and sent a message. Existing read-only grants remain read-only until reauthorized; a token with write permissions does not automatically upgrade an OAuth grant.
 
 Other clients should configure a remote HTTP server named `edworking-mcp` and use their built-in OAuth flow. Public clients with PKCE, dynamic registration and HTTPS Client ID Metadata Documents are supported. `/mcp` accepts only Edworking MCP access tokens.
 
@@ -39,6 +39,8 @@ After **Allow access** or **Cancel**, the browser returns to your assistant auto
 | `get_connection` | Any connection | Connection name, permissions and expiry |
 | `list_projects`, `list_project_statuses`, `list_project_members` | `projects:read` | Projects, valid statuses and existing assignee IDs |
 | `list_tasks`, `get_task` | `tasks:read` | Filter tasks by project, status, assignee, priority, title and due dates; read task content |
+| `list_figma_tasks` | `tasks:read` | Find accessible tasks linked to a Figma file or frame |
+| `link_figma_frame` | `tasks:write` | Link a Figma frame to an accessible task |
 | `search`, `fetch` | Per-source read scope | Indexed tasks, Docs, files and project messages; typed result retrieval |
 | `list_docs`, `get_doc` | `docs:read` | Find Docs and read their Markdown content |
 | `create_doc`, `update_doc`, `edit_doc_content` | `docs:write`; body edits also need `docs:read` | Create, rename and edit Docs |
@@ -71,7 +73,7 @@ node --env-file=.env dist/index.js
 
 Run `npm run check` for type checking, security/integration tests and build. `npm run dev` starts a watcher when variables are already loaded by your shell.
 
-For local stdio, configure your client to run `npx -y @edworking/mcp@0.1.4` with `EDWORKING_API_TOKEN` supplied securely in its process environment, or build from source and run `node /absolute/path/to/edworking-mcp/dist/stdio.js`. The [npm package](https://www.npmjs.com/package/@edworking/mcp) is public. Stdio uses that token directly with Edworking and has in-memory deduplication that resets on restart.
+For local stdio, configure your client to run `npx -y @edworking/mcp@0.2.0` with `EDWORKING_API_TOKEN` supplied securely in its process environment, or build from source and run `node /absolute/path/to/edworking-mcp/dist/stdio.js`. The [npm package](https://www.npmjs.com/package/@edworking/mcp) is public; use `@0.3.0` after its publication is confirmed, or build this source for the Figma features. Stdio uses that token directly with Edworking and has in-memory deduplication that resets on restart.
 
 ## Railway deployment
 

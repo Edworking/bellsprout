@@ -1,6 +1,8 @@
 # Changelog
 
-## Unreleased
+## 0.3.0 — 2026-11-04
+
+- Refresh vulnerable runtime dependencies, raise the Zod minimum to 4.6.7, and align package, plugin, registry and server metadata at 0.3.0.
 
 - Extend existing task/Doc creation with optional Figma designs: native embeds, task Resources and explicit optional fields. The plugin sends the same input, so embeds are built only here.
 - Validate Figma designs against the viewer file-key format; reject unclosed Markdown code fences (`UNCLOSED_CODE_FENCE`) and oversized combined content (`CONTENT_TOO_LONG`) before creation.
