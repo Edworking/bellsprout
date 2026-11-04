@@ -41,7 +41,7 @@ Sources: [package format](https://developers.openai.com/plugins/build/plugins), 
 | PulseMCP | Submissions and listing changes paused; notice dated 2026-09-03 | Its [submission page](https://www.pulsemcp.com/submit) directs publishers to the Official MCP Registry for later discovery. Registry publication is complete; PulseMCP listing is not confirmed. |
 | Awesome Remote MCP Servers | [PR #1735](https://github.com/punkpeye/awesome-remote-mcp-servers/pull/1735) submitted on 13 October | Includes the hosted OAuth endpoint, Glama connector badge and alphabetical Project Management entry. Automated submission check passed with `endpoint-ok` and `has-connector`; awaiting maintainer review. Submission is not listing approval. |
 | Awesome MCP Servers | [PR #16055](https://github.com/punkpeye/awesome-mcp-servers/pull/16055) open and unmerged, labeled `missing-glama` | Add the approved Glama listing and passing introspection badge when available. |
-| npm | [@edworking/mcp 0.2.0](https://www.npmjs.com/package/@edworking/mcp) is public, verified 4 November 2026; 0.3.0 publication is pending | Publishing requires 2FA; bypass-2FA tokens are disallowed. Inspect the package and authenticate each future release. |
+| npm | [@edworking/mcp 0.3.0](https://www.npmjs.com/package/@edworking/mcp/v/0.3.0) is public, published and verified 4 November 2026 | Published with npm browser authentication and 2FA. The tarball matches the GitHub release asset. Inspect the package and authenticate each future release; bypass-2FA tokens are disallowed. |
 
 Listing copy: **Edworking MCP connects AI assistants to your projects, tasks, conversations and files. Read workspace context and take requested actions with scoped OAuth access and links back to Edworking.**
 
@@ -53,4 +53,4 @@ Recommended next work: native consent/workspace selection, real-client evaluatio
 
 PR #19 merged as `259930b`. CI passed on Node 22 and 24; local type checking, all 39 tests and build passed, and the runtime audit reported zero vulnerabilities. Bellsprout deployed successfully with the existing domain, volume and encryption key. Browser checks confirmed `/healthz` reports `ok`, `/readyz` reports `ready`, and the server card reports version 0.3.0 with 24 tools.
 
-Native `EDWORKING_CONNECT_URL` activation remains gated on completing the signed-in Edworking flow. Real Figma plugin acceptance and marketplace publication are separate from this hosted MCP deployment. npm 0.3.0 still requires authenticated publication and verification.
+Native `EDWORKING_CONNECT_URL` activation and the signed-in Edworking handoff test are in progress. Real Figma plugin acceptance and marketplace publication are separate from this hosted MCP deployment. npm 0.3.0 publication succeeded and its public version page was verified.
