@@ -1,6 +1,5 @@
 # Edworking MCP
 
-[![Edworking MCP on Smithery](https://smithery.ai/badge/david-cagigas/edworking-mcp)](https://smithery.ai/servers/david-cagigas/edworking-mcp)
 [![Edworking MCP on Glama](https://glama.ai/mcp/connectors/io.github.Edworking/edworking-mcp/badges/score.svg)](https://glama.ai/mcp/connectors/io.github.Edworking/edworking-mcp)
 
 The official, open-source [Edworking](https://edworking.com) MCP server. Connect your assistant to projects, tasks, Docs, conversations and files your account can access.
@@ -11,7 +10,7 @@ The official, open-source [Edworking](https://edworking.com) MCP server. Connect
 
 **Release:** 0.3.0 adds a Figma plugin transport, design-aware task and Doc creation, and two frame-link tools (24 tools total). Deploy the matching scoped API backend before the MCP server. Docs require new `docs:read` / `docs:write` token permissions and OAuth consent. Existing grants are not expanded automatically.
 
-**Distribution:** npm 0.2.0 was verified on 4 November 2026. Version 0.3.0 must be published separately after deployment and acceptance checks; merging source does not publish a package or update directory metadata. The OpenAI submission was last verified as pending on 13 October 2026. See the [publication checklist](docs/distribution.md) for individual directory statuses.
+**Distribution:** npm 0.2.0 was verified on 4 November 2026. Version 0.3.0 must be published separately after deployment and acceptance checks; merging source does not publish a package or update directory metadata. The hosted server and Official MCP Registry are at 0.3.0. OpenAI is not submitted or published; its authenticated scan discovers all 24 tools, but the metadata upload is blocked by a portal error. See the [publication checklist](docs/distribution.md) for individual directory statuses.
 
 ## Connect
 
