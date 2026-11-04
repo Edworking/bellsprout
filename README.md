@@ -10,7 +10,7 @@ The official, open-source [Edworking](https://edworking.com) MCP server. Connect
 
 **Release:** 0.3.0 adds a Figma plugin transport, design-aware task and Doc creation, and two frame-link tools (24 tools total). Deploy the matching scoped API backend before the MCP server. Docs require new `docs:read` / `docs:write` token permissions and OAuth consent. Existing grants are not expanded automatically.
 
-**Distribution:** npm 0.2.0 was verified on 4 November 2026. Version 0.3.0 must be published separately after deployment and acceptance checks; merging source does not publish a package or update directory metadata. The hosted server and Official MCP Registry are at 0.3.0. OpenAI is not submitted or published; its authenticated scan discovers all 24 tools, but the metadata upload is blocked by a portal error. See the [publication checklist](docs/distribution.md) for individual directory statuses.
+**Distribution:** npm, the hosted server and Official MCP Registry are at 0.3.0, verified on 4 November 2026. Merging source does not publish a package or update directory metadata. OpenAI is not submitted or published; its authenticated scan discovers all 24 tools, but the metadata upload is blocked by a portal error. See the [publication checklist](docs/distribution.md) for individual directory statuses.
 
 ## Connect
 
@@ -72,7 +72,7 @@ node --env-file=.env dist/index.js
 
 Run `npm run check` for type checking, security/integration tests and build. `npm run dev` starts a watcher when variables are already loaded by your shell.
 
-For local stdio, configure your client to run `npx -y @edworking/mcp@0.2.0` with `EDWORKING_API_TOKEN` supplied securely in its process environment, or build from source and run `node /absolute/path/to/edworking-mcp/dist/stdio.js`. The [npm package](https://www.npmjs.com/package/@edworking/mcp) is public; use `@0.3.0` after its publication is confirmed, or build this source for the Figma features. Stdio uses that token directly with Edworking and has in-memory deduplication that resets on restart.
+For local stdio, configure your client to run `npx -y @edworking/mcp@0.3.0` with `EDWORKING_API_TOKEN` supplied securely in its process environment, or build from source and run `node /absolute/path/to/edworking-mcp/dist/stdio.js`. The [npm package](https://www.npmjs.com/package/@edworking/mcp/v/0.3.0) is public. Stdio uses that token directly with Edworking and has in-memory deduplication that resets on restart.
 
 ## Railway deployment
 
