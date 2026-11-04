@@ -1,12 +1,12 @@
 # Publication checklist
 
-Updated 2026-10-13. A repository, deployment and directory approval are separate milestones. Never claim a listing without a verified listing URL.
+Release preparation updated 2026-11-04. Directory statuses below retain their original verification dates unless explicitly updated. A repository, deployment and directory approval are separate milestones. Never claim a listing without a verified listing URL.
 
 ## OpenAI
 
 ZIP the contents of `plugin/` at the archive root and upload to https://platform.openai.com/plugins. It includes one remote MCP server in the initial package.
 
-Current status: **submitted on 13 October 2026; In review / Pending review, not published**. The portal labels the review version 1.0.0; the uploaded plugin manifest is 0.1.4. Domain verification and the authenticated metadata scan are complete, with all 15 tools discovered and no scan findings. Five positive and three revised negative scenarios were checked in ChatGPT using the dedicated sample workspace. Private reviewer instructions and an [83-second MCP walkthrough](https://github.com/Edworking/edworking-mcp/raw/632f8a959ebc6470fce3a6a37627b8f0e05899c5/docs/edworking-mcp-chatgpt-walkthrough-2026-10-13.mp4) were supplied, and the publisher confirmed all six final attestations. Await the review decision and keep the reviewer credentials and sample workspace available. These bounded tests and the metadata scan are not an independent security audit.
+Last verified on 13 October 2026: **In review / Pending review, not published**. Recheck the portal before submitting the 0.3.0 package; do not infer current approval from this historical entry. The portal labels the review version 1.0.0; the uploaded plugin manifest is 0.1.4. Domain verification and the authenticated metadata scan are complete, with all 15 tools discovered and no scan findings. Five positive and three revised negative scenarios were checked in ChatGPT using the dedicated sample workspace. Private reviewer instructions and an [83-second MCP walkthrough](https://github.com/Edworking/edworking-mcp/raw/632f8a959ebc6470fce3a6a37627b8f0e05899c5/docs/edworking-mcp-chatgpt-walkthrough-2026-10-13.mp4) were supplied, and the publisher confirmed all six final attestations. Await the review decision and keep the reviewer credentials and sample workspace available. These bounded tests and the metadata scan are not an independent security audit.
 
 Release checklist (completed for this submission; repeat as applicable for future releases):
 
@@ -25,7 +25,7 @@ On 13 October the submission portal metadata connection requested five read scop
 
 Negative cases: an unspecified message/destination requires clarification; deletion and another tenant's private data must not be accessed; importing a private metadata URL such as `http://169.254.169.254/` must fail without fetching it. Verify denied scopes never execute upstream writes and retries do not duplicate completed mutations.
 
-Native Charizard sign-in and consent is the next onboarding improvement. The initial flow uses a dedicated API token entered on the browser consent page. Never request secrets through chat or tools.
+Native Charizard sign-in and consent is included in 0.3.0 and requires the matching backend/frontend deployment and `EDWORKING_CONNECT_URL`. The fallback flow uses a dedicated API token entered on the browser consent page. Never request secrets through chat or tools.
 
 Sources: [package format](https://developers.openai.com/plugins/build/plugins), [submission](https://developers.openai.com/plugins/deploy/submission), [review](https://developers.openai.com/plugins/deploy/app-review), [OAuth](https://developers.openai.com/plugins/build/auth).
 
@@ -39,7 +39,7 @@ Sources: [package format](https://developers.openai.com/plugins/build/plugins), 
 | PulseMCP | Submissions and listing changes paused; notice dated 2026-09-03 | Its [submission page](https://www.pulsemcp.com/submit) directs publishers to the Official MCP Registry for later discovery. Registry publication is complete; PulseMCP listing is not confirmed. |
 | Awesome Remote MCP Servers | [PR #1735](https://github.com/punkpeye/awesome-remote-mcp-servers/pull/1735) submitted on 13 October | Includes the hosted OAuth endpoint, Glama connector badge and alphabetical Project Management entry. Automated submission check passed with `endpoint-ok` and `has-connector`; awaiting maintainer review. Submission is not listing approval. |
 | Awesome MCP Servers | [PR #16055](https://github.com/punkpeye/awesome-mcp-servers/pull/16055) open and unmerged, labeled `missing-glama` | Add the approved Glama listing and passing introspection badge when available. |
-| npm | [@edworking/mcp 0.1.4](https://www.npmjs.com/package/@edworking/mcp) is public | Publishing requires 2FA; bypass-2FA tokens are disallowed. Inspect the package and authenticate each future release. |
+| npm | [@edworking/mcp 0.2.0](https://www.npmjs.com/package/@edworking/mcp) is public, verified 4 November 2026; 0.3.0 publication is pending | Publishing requires 2FA; bypass-2FA tokens are disallowed. Inspect the package and authenticate each future release. |
 
 Listing copy: **Edworking MCP connects AI assistants to your projects, tasks, conversations and files. Read workspace context and take requested actions with scoped OAuth access and links back to Edworking.**
 
