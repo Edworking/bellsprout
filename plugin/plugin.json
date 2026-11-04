@@ -20,9 +20,9 @@
   "extensions": {
     "com.openai": {
       "interface": {
-        "displayName": "Edworking MCP",
+        "displayName": "Edworking",
         "shortDescription": "Your Edworking assistant",
-        "longDescription": "Read accessible workspace content and search indexed tasks, Docs, files and project messages. Create tasks and Docs; update task status, priority, assignees and dates; make targeted Markdown edits to task descriptions and Docs. Send requested messages and import public files with matching permissions. Search is ranked and bounded; indexing may lag. Requires an Edworking account and browser authorization with a dedicated scoped token.",
+        "longDescription": "Read accessible workspace content and search indexed tasks, Docs, files and project messages. Create tasks and Docs with Figma design links and embeds; find tasks linked to a Figma file or frame. Update task status, priority, assignees and dates, and make targeted Markdown edits. Send requested messages and import public files with matching permissions. Search is ranked and bounded; indexing may lag. Requires an Edworking account and scoped browser authorization.",
         "developerName": "Edworking",
         "category": "Productivity",
         "capabilities": [
@@ -92,6 +92,9 @@
             }
           ]
         }
+      },
+      "publication": {
+        "release_notes": "Version 0.3.0 adds Figma-aware task and Doc creation, frame-link tools, and support for native Edworking sign-in. It updates vulnerable runtime dependencies. The hosted MCP URL remains https://mcp.edworking.com/mcp. Existing grants retain their permissions; additional scopes require renewed consent."
       }
     }
   }
