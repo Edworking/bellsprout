@@ -10,11 +10,11 @@ The official, open-source [Edworking](https://edworking.com) MCP server. Connect
 
 **Release:** 0.3.0 adds a Figma plugin transport, design-aware task and Doc creation, and two frame-link tools (24 tools total). Deploy the matching scoped API backend before the MCP server. Docs require new `docs:read` / `docs:write` token permissions and OAuth consent. Existing grants are not expanded automatically.
 
-**Distribution:** npm, the hosted server and Official MCP Registry are at 0.3.0, verified on 4 November 2026. Merging source does not publish a package or update directory metadata. OpenAI is not submitted or published; its authenticated scan discovers all 24 tools, but the metadata upload is blocked by a portal error. See the [publication checklist](docs/distribution.md) for individual directory statuses.
+**Distribution:** npm, the hosted server and Official MCP Registry are at 0.3.0. The OpenAI 0.3.0 metadata draft uploaded successfully on 5 November 2026 with no findings; its authenticated scan discovers all 24 tools. OpenAI review submission and publication remain separate steps. See the [publication checklist](docs/distribution.md) for individual directory statuses.
 
 ## Connect
 
-Add the endpoint to an MCP client supporting Streamable HTTP and OAuth. Follow the browser authorization window. Create a dedicated scoped token in **Edworking → Profile → API tokens**, enter it on the Edworking MCP consent page and approve the client and permissions. Never paste a token into an assistant conversation.
+Add the endpoint to an MCP client supporting Streamable HTTP and OAuth. Follow the browser authorization window, choose **Continue in Edworking**, and review the client, destination, workspace and permissions before approving. The fallback accepts a dedicated scoped token created in **Edworking → Profile → API tokens** and entered directly on the browser consent page. Never paste a token into an assistant conversation.
 
 Connections request read permissions by default. Writes require the matching OAuth scope and upstream token permission. Reconnect with explicit scopes if your client cannot request additional permissions. Revoke the dedicated token in Edworking to disconnect every grant using it. Grants expire within 30 days or when the Edworking token expires, whichever is sooner. Access tokens last up to ten minutes and refresh tokens rotate.
 
