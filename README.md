@@ -10,7 +10,7 @@ The official, open-source [Edworking](https://edworking.com) MCP server. Connect
 
 **Release:** 0.3.0 adds a Figma plugin transport, design-aware task and Doc creation, and two frame-link tools (24 tools total). Deploy the matching scoped API backend before the MCP server. Docs require new `docs:read` / `docs:write` token permissions and OAuth consent. Existing grants are not expanded automatically.
 
-**Distribution:** npm, the hosted server and Official MCP Registry are at 0.3.0. The OpenAI 0.3.0 metadata draft uploaded successfully on 5 November 2026 with no findings; its authenticated scan discovers all 24 tools. OpenAI review submission and publication remain separate steps. See the [publication checklist](docs/distribution.md) for individual directory statuses.
+**Distribution:** npm, the hosted server and Official MCP Registry are at 0.3.0. OpenAI version 0.3.0 was submitted on 5 November 2026 and is **In review**, not yet published. The metadata upload had no findings and its authenticated scan discovers all 24 tools. See the [publication checklist](docs/distribution.md) for individual directory statuses.
 
 ## Connect
 
@@ -23,7 +23,7 @@ codex mcp add edworking-mcp --url https://mcp.edworking.com/mcp
 codex mcp login edworking-mcp
 ```
 
-For ChatGPT testing, use **Plugins → Add custom MCP server**, select OAuth and enter the endpoint. Availability depends on your plan and workspace policy. A portable OpenAI plugin package is in [`plugin/`](plugin). The 0.3.0 package declares six read and five write OAuth scopes, including Docs. The already-submitted OpenAI review package remains a separate 0.1.4 artifact until a new version is submitted. Verify the actual consent screen and `get_connection` result. On 13 October, the submission portal metadata grant used five read scopes, while a separate ChatGPT demo connection received all nine scopes and successfully created a task and sent a message. Existing read-only grants remain read-only until reauthorized; a token with write permissions does not automatically upgrade an OAuth grant.
+For ChatGPT testing, use **Plugins → Add custom MCP server**, select OAuth and enter the endpoint. Availability depends on your plan and workspace policy. A portable OpenAI plugin package is in [`plugin/`](plugin). The 0.3.0 package declares six read and five write OAuth scopes, including Docs. The OpenAI 0.3.0 package is in review; publication awaits approval. Verify the actual consent screen and `get_connection` result. On 13 October, the submission portal metadata grant used five read scopes, while a separate ChatGPT demo connection received all nine scopes and successfully created a task and sent a message. Existing read-only grants remain read-only until reauthorized; a token with write permissions does not automatically upgrade an OAuth grant.
 
 Other clients should configure a remote HTTP server named `edworking-mcp` and use their built-in OAuth flow. Public clients with PKCE, dynamic registration and HTTPS Client ID Metadata Documents are supported. `/mcp` accepts only Edworking MCP access tokens.
 
