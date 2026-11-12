@@ -248,6 +248,58 @@ test('CIMD negotiates the public PKCE method without accepting unsupported clien
   }
 });
 
+test('Claude CIMD with additional grant types completes consent and public-client PKCE', async t => {
+  const f = fixture(); t.after(() => f.store.close());
+  const id = 'https://claude.ai/oauth/mcp-oauth-client-metadata';
+  const redirect = 'https://claude.ai/api/mcp/auth_callback';
+  // Public Claude metadata observed on 2026-11-12; all credentials below are synthetic.
+  const doc = { client_id: id, client_name: 'Claude', client_uri: 'https://claude.ai', redirect_uris: [redirect], grant_types: ['authorization_code', 'refresh_token', 'urn:ietf:params:oauth:grant-type:jwt-bearer'], response_types: ['code'], token_endpoint_auth_method: 'none' };
+  const clients = new Clients(f.store, async () => doc);
+  t.mock.method(f.oauth.clients, 'get', (clientId: string) => clients.get(clientId));
+  const browser = request.agent(f.app), verifier = random();
+  const started = await browser.get('/oauth/authorize').query({ response_type: 'code', client_id: id, redirect_uri: redirect, code_challenge: challenge(verifier), code_challenge_method: 'S256', resource: f.config.resource, scope: 'projects:read', state: 'claude-test' }).expect(303);
+  const consent = await browser.get(started.headers.location).expect(200);
+  assert.match(consent.text, /Edworking API token/);
+  assert.match(consent.text, /<strong>Claude<\/strong>/);
+  const form = { request: new URL(started.headers.location, f.config.origin).searchParams.get('request'), csrf: consent.text.match(/name="csrf" value="([^"]+)"/)![1] };
+  await browser.post('/oauth/link-token').set('Origin', f.config.origin).type('form').send({ ...form, api_token: pat }).expect(303);
+  const approved = await browser.post('/oauth/approve').set('Origin', f.config.origin).type('form').send({ ...form, decision: 'approve' }).expect(200);
+  const callback = callbackFromPage(approved);
+  assert.equal(callback.origin + callback.pathname, redirect);
+  assert.equal(callback.searchParams.get('state'), 'claude-test');
+  const tokens = (await request(f.app).post('/oauth/token').type('form').send({ grant_type: 'authorization_code', client_id: id, redirect_uri: redirect, code: callback.searchParams.get('code'), code_verifier: verifier, resource: f.config.resource }).expect(200)).body;
+  assert.equal(f.oauth.authenticate(tokens.access_token).upstream, pat);
+  const refresh = { grant_type: 'refresh_token', client_id: id, resource: f.config.resource, refresh_token: tokens.refresh_token };
+  await request(f.app).post('/oauth/token').type('form').send(refresh).expect(200);
+  const rejected = await request(f.app).post('/oauth/token').type('form').send({ grant_type: 'urn:ietf:params:oauth:grant-type:jwt-bearer', client_id: id, resource: f.config.resource }).expect(400);
+  assert.equal(rejected.body.error, 'unsupported_grant_type');
+  assert.deepEqual((await clients.get(id))?.grant_types, ['authorization_code', 'refresh_token']);
+  assert.throws(() => clients.register(doc), 'DCR must still reject unsupported requested grants');
+});
+
+test('CIMD grant capabilities require authorization code and reject malformed metadata', async t => {
+  const id = 'https://client.example/oauth/client.json';
+  for (const [grants, accepted] of [
+    [undefined, true],
+    [['authorization_code'], true],
+    [['authorization_code', 'urn:example:extension'], true],
+    [['refresh_token', 'urn:example:extension'], false],
+    [['urn:example:extension'], false],
+    [[], false],
+    ['authorization_code', false],
+    [['authorization_code', 42], false],
+    [['authorization_code', ''], false],
+  ] as const) {
+    const store = new Store(':memory:'); t.after(() => store.close());
+    const clients = new Clients(store, async () => ({ client_id: id, redirect_uris: ['https://client.example/callback'], grant_types: grants }));
+    if (accepted) {
+      const client = await clients.get(id);
+      assert.ok(client?.grant_types.includes('authorization_code'));
+      assert.ok(client?.grant_types.every(grant => grant === 'authorization_code' || grant === 'refresh_token'));
+    } else await assert.rejects(clients.get(id));
+  }
+});
+
 test('pinned DNS supports Node automatic address-family selection without a second DNS lookup', async t => {
   const server = createServer(socket => socket.end());
   await new Promise<void>(resolve => server.listen(0, '127.0.0.1', resolve));
