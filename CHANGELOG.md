@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Fix Claude connections using its published OAuth identity: accept additional advertised grant capabilities while retaining only authorization-code and refresh-token grants. Preserve public-client PKCE, redirect validation, and strict dynamic registration.
+
 ## 0.3.0 — 2026-11-04
 
 - Refresh vulnerable runtime dependencies, raise the Zod minimum to 4.6.7, and align package, plugin, registry and server metadata at 0.3.0.

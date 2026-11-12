@@ -27,6 +27,8 @@ For ChatGPT testing, use **Plugins → Add custom MCP server**, select OAuth and
 
 Other clients should configure a remote HTTP server named `edworking-mcp` and use their built-in OAuth flow. Public clients with PKCE, dynamic registration and HTTPS Client ID Metadata Documents are supported. `/mcp` accepts only Edworking MCP access tokens.
 
+In Claude's custom connector settings, choose **Sign in now** and **Use Claude's published identity**, leaving request headers empty. No client secret is required. Edworking negotiates authorization-code and refresh-token grants from Claude's published capabilities; other advertised grants are not enabled. Enter an Edworking API token only on the Edworking consent page if using the token fallback.
+
 Client setup instructions: [Edworking MCP guide](https://edworking.com/integrations/mcp). See the [competitor review and delivery roadmap](docs/competitive-roadmap.md) for remaining capabilities and launch gates.
 
 After **Allow access** or **Cancel**, the browser returns to your assistant automatically. If it remains on **Returning to your assistant**, use the return button. Each consent request can be used once and expires after ten minutes. If you see `invalid_grant` or an expired/used request, start a new connection from your assistant instead of reopening the old consent link. Do not refresh or resubmit the approval form.

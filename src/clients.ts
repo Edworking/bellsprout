@@ -77,6 +77,7 @@ export class Clients {
     if (!id.startsWith('https://')) return undefined;
     const doc = metadata.extend({
       client_id: z.literal(id),
+      grant_types: z.array(z.string().min(1)).default(['authorization_code', 'refresh_token']),
       token_endpoint_auth_method: z.string().min(1).max(100).optional(),
       token_endpoint_auth_methods_supported: z.array(z.string().min(1).max(100)).min(1).max(10).optional(),
     }).parse(await this.retrieve(id));
@@ -84,7 +85,11 @@ export class Clients {
     // preference. Select only a method this PKCE-only authorization server supports.
     const methods = doc.token_endpoint_auth_methods_supported ?? [doc.token_endpoint_auth_method ?? 'none'];
     if (!methods.includes('none')) throw new Error('Client does not support public-client PKCE authentication');
-    const client = { ...metadata.parse({ ...doc, token_endpoint_auth_method: 'none' }), client_id: id };
+    // Published metadata can advertise grants for other servers (e.g. Claude's
+    // JWT bearer grant). Retain only our supported grants and require code flow.
+    const grants = doc.grant_types.filter(grant => grant === 'authorization_code' || grant === 'refresh_token');
+    if (!grants.includes('authorization_code')) throw new Error('Authorization code flow required');
+    const client = { ...metadata.parse({ ...doc, grant_types: grants, token_endpoint_auth_method: 'none' }), client_id: id };
     this.store.set('client', hash(id), client, Date.now() + 3600_000);
     return client;
   }
