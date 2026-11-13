@@ -5,7 +5,7 @@ import { rateLimit } from 'express-rate-limit';
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
 import { z } from 'zod';
 import type { Config } from './config.js';
-import { READ_SCOPES } from './config.js';
+import { SCOPES } from './config.js';
 import { Store } from './store.js';
 import { Vault } from './crypto.js';
 import { Edworking, ApiError } from './edworking.js';
@@ -40,7 +40,7 @@ export function createApp(config: Config, store: Store, api = new Edworking(conf
   app.get('/terms', (_req, res) => res.type('html').send(terms()));
   app.get('/.well-known/openai-apps-challenge', (_req, res) => { if (config.challenge) res.type('text/plain').send(config.challenge); else res.status(404).end(); });
   app.get('/.well-known/mcp/server-card.json', (_req, res) => res.json({ serverInfo: { name: 'edworking-mcp', title: 'Edworking MCP', version: '0.3.0' }, authentication: { required: true, schemes: ['oauth2'] }, tools: toolSpecs.map(s => ({ name: s.name, description: s.description, inputSchema: z.toJSONSchema(s.schema), outputSchema: z.toJSONSchema(toolOutputSchemas[s.name]!), annotations: { readOnlyHint: !s.write, destructiveHint: !!s.destructive, openWorldHint: !!s.openWorld } })), prompts: [], resources: [] }));
-  const challengeHeader = (error?: string) => `Bearer resource_metadata="${config.origin}/.well-known/oauth-protected-resource/mcp", scope="${READ_SCOPES.join(' ')}"${error ? `, error="${error}"` : ''}`;
+  const challengeHeader = (error?: string) => `Bearer resource_metadata="${config.origin}/.well-known/oauth-protected-resource/mcp", scope="${SCOPES.join(' ')}"${error ? `, error="${error}"` : ''}`;
   app.all('/mcp', rateLimit({ windowMs: 60_000, limit: 120, standardHeaders: 'draft-8', legacyHeaders: false }), async (req, res) => {
     const authorization = req.get('authorization');
     if (!authorization?.startsWith('Bearer ')) { res.set('WWW-Authenticate', challengeHeader()).status(401).json({ error: 'unauthorized' }); return; }

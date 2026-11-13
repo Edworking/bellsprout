@@ -2,7 +2,7 @@ import { Router, type Request, type Response } from 'express';
 import { rateLimit } from 'express-rate-limit';
 import { z } from 'zod';
 import type { Config } from './config.js';
-import { SCOPES, READ_SCOPES } from './config.js';
+import { SCOPES } from './config.js';
 import { Store } from './store.js';
 import { Clients, matchesRedirect } from './clients.js';
 import { Edworking, ApiError, type TokenInfo } from './edworking.js';
@@ -151,7 +151,7 @@ export class OAuth {
       code_challenge_methods_supported: ['S256'], scopes_supported: SCOPES,
       client_id_metadata_document_supported: true, authorization_response_iss_parameter_supported: true,
     }));
-    const resourceMetadata = (_req: Request, res: Response) => res.json({ resource: config.resource, resource_name: 'Edworking MCP', authorization_servers: [config.origin], scopes_supported: READ_SCOPES, bearer_methods_supported: ['header'], resource_documentation: `${config.origin}/`, resource_policy_uri: `${config.origin}/privacy`, resource_tos_uri: `${config.origin}/terms` });
+    const resourceMetadata = (_req: Request, res: Response) => res.json({ resource: config.resource, resource_name: 'Edworking MCP', authorization_servers: [config.origin], scopes_supported: SCOPES, bearer_methods_supported: ['header'], resource_documentation: `${config.origin}/`, resource_policy_uri: `${config.origin}/privacy`, resource_tos_uri: `${config.origin}/terms` });
     r.get('/.well-known/oauth-protected-resource', resourceMetadata);
     r.get('/.well-known/oauth-protected-resource/mcp', resourceMetadata);
     r.post('/oauth/register', budget(10), (req, res) => {
@@ -168,7 +168,9 @@ export class OAuth {
       if (req.query.response_type !== 'code' || req.query.code_challenge_method !== 'S256' || !opaque.safeParse(req.query.code_challenge).success) throw new OAuthError('invalid_request', 'Authorization code flow with PKCE S256 is required.');
       if (req.query.resource !== config.resource) throw new OAuthError('invalid_target', 'Use the Edworking MCP resource URL.');
       if (req.query.state !== undefined && (typeof req.query.state !== 'string' || req.query.state.length > 2048)) throw new OAuthError('invalid_request', 'Invalid state.');
-      const scopes = req.query.scope === undefined ? [...READ_SCOPES] : parseScopes(req.query.scope);
+      // New connections can authorize every public tool. Explicit scope requests
+      // stay exact; neither existing grants nor refreshes inherit these defaults.
+      const scopes = req.query.scope === undefined ? [...SCOPES] : parseScopes(req.query.scope);
       const session = random(), id = random(), expires = Date.now() + 600_000;
       const p: Pending = { id, csrf: random(), browser: hash(session), linkNonce: random(), clientId: client.client_id, clientName: client.client_name, redirect, scopes, state: req.query.state as string | undefined, challenge: asString(req.query.code_challenge), expires };
       this.store.set('pending', id, p, expires);
