@@ -8,7 +8,7 @@ import request from 'supertest';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js';
 import { createApp } from '../src/app.js';
-import { readConfig, SCOPES } from '../src/config.js';
+import { readConfig, SCOPES, READ_SCOPES, scopeLabels } from '../src/config.js';
 import { Edworking, ApiError } from '../src/edworking.js';
 import { Store } from '../src/store.js';
 import { Vault, random, challenge, hash } from '../src/crypto.js';
@@ -46,10 +46,10 @@ function callbackFromPage(response: { text: string; headers: Record<string, stri
   assert.ok(!response.text.includes('<script'));
   return new URL(href.replaceAll('&amp;', '&').replaceAll('&quot;', '"').replaceAll('&#39;', "'").replaceAll('&lt;', '<').replaceAll('&gt;', '>'));
 }
-async function begin(f: ReturnType<typeof fixture>, scope = 'projects:read tasks:read tasks:write') {
+async function begin(f: ReturnType<typeof fixture>, scope: string | null = 'projects:read tasks:read tasks:write') {
   const client = (await request(f.app).post('/oauth/register').send({ client_name: '<script>client</script>', redirect_uris: ['https://client.example/callback'], token_endpoint_auth_method: 'none' }).expect(201)).body;
   const browser = request.agent(f.app), verifier = random();
-  const params = { response_type: 'code', client_id: client.client_id, redirect_uri: client.redirect_uris[0], code_challenge_method: 'S256', code_challenge: challenge(verifier), scope, resource: f.config.resource, state: 'client-state' };
+  const params = { response_type: 'code', client_id: client.client_id, redirect_uri: client.redirect_uris[0], code_challenge_method: 'S256', code_challenge: challenge(verifier), ...(scope === null ? {} : { scope }), resource: f.config.resource, state: 'client-state' };
   const response = await browser.get('/oauth/authorize').query(params).expect(303);
   const id = new URL(response.headers.location, f.config.origin).searchParams.get('request')!;
   const page = await browser.get(response.headers.location).expect(200);
@@ -63,7 +63,7 @@ async function begin(f: ReturnType<typeof fixture>, scope = 'projects:read tasks
   const csrf = page.text.match(/name="csrf" value="([^"]+)"/)![1];
   return { client, browser, verifier, params, id, csrf };
 }
-async function authorize(f: ReturnType<typeof fixture>, scope?: string) {
+async function authorize(f: ReturnType<typeof fixture>, scope?: string | null) {
   const b = await begin(f, scope);
   await b.browser.post('/oauth/link-token').set('Origin', f.config.origin).type('form').send({ request: b.id, csrf: b.csrf, api_token: pat }).expect(303);
   const consent = await b.browser.get(`/oauth/consent?request=${b.id}`).expect(200);
@@ -74,6 +74,65 @@ async function authorize(f: ReturnType<typeof fixture>, scope?: string) {
   const body = { grant_type: 'authorization_code', client_id: b.client.client_id, resource: f.config.resource, redirect_uri: b.params.redirect_uri, code: url.searchParams.get('code'), code_verifier: b.verifier };
   return { ...b, body };
 }
+
+test('OAuth discovery and unauthenticated challenges advertise all public tool permissions', async t => {
+  const f = fixture(); t.after(() => f.store.close());
+  for (const path of ['/.well-known/oauth-protected-resource', '/.well-known/oauth-protected-resource/mcp', '/.well-known/oauth-authorization-server']) {
+    const metadata = await request(f.app).get(path).expect(200);
+    assert.deepEqual(metadata.body.scopes_supported, SCOPES);
+  }
+  for (const token of [undefined, 'invalid']) {
+    const call = request(f.app).post('/mcp');
+    if (token) call.set('Authorization', `Bearer ${token}`);
+    const response = await call.send({}).expect(401);
+    assert.ok(response.headers['www-authenticate'].includes(`scope="${SCOPES.join(' ')}"`));
+  }
+  for (const spec of toolSpecs) for (const scope of spec.scopes) assert.ok(SCOPES.includes(scope as typeof SCOPES[number]), spec.name);
+});
+
+test('omitting scope shows all permissions and grants them only after explicit consent', async t => {
+  const f = fixture(); t.after(() => f.store.close());
+  const b = await begin(f, null);
+  const initial = await b.browser.get('/oauth/consent').query({ request: b.id }).expect(200);
+  for (const scope of SCOPES) assert.ok(initial.text.includes(scopeLabels[scope]!), scope);
+  await b.browser.post('/oauth/approve').set('Origin', f.config.origin).type('form')
+    .send({ request: b.id, csrf: b.csrf, decision: 'approve' }).expect(400);
+  await b.browser.post('/oauth/link-token').set('Origin', f.config.origin).type('form')
+    .send({ request: b.id, csrf: b.csrf, api_token: pat }).expect(303);
+  const review = await b.browser.get('/oauth/consent').query({ request: b.id }).expect(200);
+  for (const scope of SCOPES) assert.ok(review.text.includes(scopeLabels[scope]!), scope);
+  const approved = await b.browser.post('/oauth/approve').set('Origin', f.config.origin).type('form')
+    .send({ request: b.id, csrf: b.csrf, decision: 'approve' }).expect(200);
+  const callback = callbackFromPage(approved);
+  const tokens = (await request(f.app).post('/oauth/token').type('form').send({
+    grant_type: 'authorization_code', client_id: b.client.client_id, resource: f.config.resource,
+    redirect_uri: b.params.redirect_uri, code: callback.searchParams.get('code'), code_verifier: b.verifier,
+  }).expect(200)).body;
+  assert.deepEqual(tokens.scope.split(' '), SCOPES);
+  assert.deepEqual(f.oauth.authenticate(tokens.access_token).scopes, SCOPES);
+  assert.equal(f.api.calls.length, 0, 'Connecting does not execute workspace actions');
+});
+
+test('default full access rejects read-only upstream credentials and invalid scopes never select defaults', async t => {
+  const f = fixture(); t.after(() => f.store.close());
+  f.api.identity.scopes = [...READ_SCOPES];
+  const b = await begin(f, null);
+  const denied = await b.browser.post('/oauth/link-token').set('Origin', f.config.origin).type('form')
+    .send({ request: b.id, csrf: b.csrf, api_token: pat }).expect(400);
+  assert.match(denied.text, /does not include all requested permissions/);
+  await b.browser.post('/oauth/approve').set('Origin', f.config.origin).type('form')
+    .send({ request: b.id, csrf: b.csrf, decision: 'approve' }).expect(400);
+  for (const scope of ['', 'tasks:delete']) await b.browser.get('/oauth/authorize').query({ ...b.params, scope }).expect(400);
+  const read = await authorize(f, READ_SCOPES.join(' '));
+  const tokens = (await request(f.app).post('/oauth/token').type('form').send(read.body).expect(200)).body;
+  assert.deepEqual(tokens.scope.split(' '), READ_SCOPES);
+  const refresh = { grant_type: 'refresh_token', client_id: read.client.client_id, resource: f.config.resource, refresh_token: tokens.refresh_token };
+  await request(f.app).post('/oauth/token').type('form').send({ ...refresh, scope: SCOPES.join(' ') }).expect(400);
+  const refreshed = (await request(f.app).post('/oauth/token').type('form').send(refresh).expect(200)).body;
+  assert.deepEqual(refreshed.scope.split(' '), READ_SCOPES);
+  assert.deepEqual(f.oauth.authenticate(tokens.access_token).scopes, READ_SCOPES);
+  assert.equal(f.api.calls.length, 0);
+});
 test('OAuth enforces PKCE, exact redirects, resource audience, browser binding and CSRF', async t => {
   const f = fixture(); t.after(() => f.store.close()); const b = await begin(f);
   for (const extra of [{ redirect_uri: 'https://client.example/evil' }, { code_challenge_method: 'plain' }, { resource: 'https://elsewhere.example/mcp' }]) await request(f.app).get('/oauth/authorize').query({ ...b.params, ...extra }).expect(400);
@@ -588,11 +647,13 @@ test('plugin helper capabilities stay out of public MCP discovery',()=>{
  }
 });
 
-test('native connection keeps the existing consent flow for non-Figma MCP clients', async t => {
+test('native connection passes all default permissions to Edworking and keeps general MCP consent', async t => {
   const f = fixture(); t.after(() => f.store.close());
   f.config.connectUrl = f.config.appUrl + '/settings/integrations?connection=mcp';
-  const b = await begin(f);
+  const b = await begin(f, null);
   const pending = f.store.get<{ linkNonce: string }>('pending', b.id)!;
+  const details = await request(f.app).get('/oauth/request').query({ request: b.id, nonce: pending.linkNonce }).expect(200);
+  assert.deepEqual(details.body.scopes, SCOPES);
   const linked = await request(f.app).post('/oauth/link').set('Origin', f.config.appUrl)
     .send({ request: b.id, nonce: pending.linkNonce, apiToken: pat }).expect(200);
   assert.equal(linked.body.continueUrl, f.config.origin + '/oauth/consent?request=' + b.id);
@@ -611,6 +672,7 @@ test('native connection keeps the existing consent flow for non-Figma MCP client
     redirect_uri: b.params.redirect_uri, code: callback.searchParams.get('code'), code_verifier: b.verifier,
   }).expect(200);
   assert.equal(f.oauth.authenticate(tokens.body.access_token).upstream, pat);
+  assert.deepEqual(tokens.body.scope.split(' '), SCOPES);
 });
 
 test('Figma creates preserve requested task fields and files, and Docs only receive embeds', async t => {
@@ -812,8 +874,8 @@ test('external MCP SDK completes discovery, Figma callback PKCE, explicit write 
     await client.connect(new StreamableHTTPClientTransport(new URL(f.config.resource), { authProvider: provider, fetch: localFetch }));
     return client;
   }
-  await approve();
-  assert.ok(tokens!.scope!.split(' ').every(scope => scope.endsWith(':read')));
+  await approve(READ_SCOPES.join(' '));
+  assert.deepEqual(tokens!.scope!.split(' '), READ_SCOPES);
   const reader = await connect();
   const discovered = await reader.listTools(); assert.equal(discovered.tools.length, 24);
   for (const name of ['create_task', 'create_doc']) {
@@ -827,7 +889,9 @@ test('external MCP SDK completes discovery, Figma callback PKCE, explicit write 
   const registrationId = registration!.client_id;
   // Consent is explicit: refreshing a read grant must never silently add writes.
   tokens = undefined;
-  await approve('projects:read tasks:read tasks:write docs:read docs:write');
+  await approve();
+  assert.deepEqual(authorization!.searchParams.get('scope')!.split(' '), SCOPES);
+  assert.deepEqual(tokens!.scope!.split(' '), SCOPES);
   assert.equal(registration!.client_id, registrationId);
   const writer = await connect();
   f.api.respond = (_query, a) => ({ apiCreateTask: { id: 'task-A', name: a.name, projectId: a.projectId }, apiCreateDoc: { id: 'doc-A', title: a.title, projectId: a.projectId }, apiLinkFigmaFrame: { id: 'link-A', url: a.url } });

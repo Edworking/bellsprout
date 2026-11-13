@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Request all 11 supported read/write scopes in MCP discovery, authentication challenges and authorization requests that omit scopes. New connections show the full permissions before approval, including native Edworking sign-in. Explicit read-only requests and existing grants stay restricted; reconnect to approve writes. The 24-tool catalog and upstream scope checks are unchanged.
 - Fix Claude connections using its published OAuth identity: accept additional advertised grant capabilities while retaining only authorization-code and refresh-token grants. Preserve public-client PKCE, redirect validation, and strict dynamic registration.
 
 ## 0.3.0 — 2026-11-04
